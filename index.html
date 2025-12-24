@@ -242,24 +242,33 @@
         setInterval(updateCountdown, 1000);
         updateCountdown(); // Initial call
 
-        function joinWaitlist() {
+        async function joinWaitlist() {
             const email = document.getElementById('email').value;
             if (!email) {
                 alert('Please enter your email address');
                 return;
             }
 
-            // For now, just show success message
-            // In production, this would send to backend
-            document.getElementById('success').style.display = 'block';
-            document.getElementById('email').value = '';
+            try {
+                const response = await fetch('/api/waitlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
 
-            // Store in localStorage for demo
-            const waitlist = JSON.parse(localStorage.getItem('beeline_waitlist') || '[]');
-            waitlist.push({ email, timestamp: new Date().toISOString() });
-            localStorage.setItem('beeline_waitlist', JSON.stringify(waitlist));
+                const data = await response.json();
 
-            console.log('Waitlist entries:', waitlist);
+                if (response.ok) {
+                    document.getElementById('success').style.display = 'block';
+                    document.getElementById('email').value = '';
+                } else {
+                    alert(data.error || 'Something went wrong');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
         }
     </script>
 </body>
